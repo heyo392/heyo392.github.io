@@ -3,9 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Personal website and portfolio">
-    <meta name="theme-color" content="#f8fafc">
-    <title>Home</title>
+    <title>Gallery</title>
     
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -13,9 +11,9 @@
     <header class="topbar">
       <div class="container bar-inner">
         <nav class="toplinks" aria-label="Site">
-          <a href="index.html" aria-current="page">Home</a>
+          <a href="index.html">Home</a>
           <a href="projects.html">Projects</a>
-          <a href="gallery.html">Gallery</a>
+          <a href="gallery.html" aria-current="page">Gallery</a>
           <a href="blog.html">Blog</a>
         </nav>
         <div class="icons">
@@ -29,23 +27,22 @@
       </div>
     </header>
 
-    <main id="home">
-      <section class="hero container" data-reveal>
-        <div class="hero-grid">
-          <div class="identity">
-            <h1>David Zhang</h1>
-            <p class="tagline">Hi there!</p>
-            <p class="about"> I'm a a junior at MIT studying Physics (8) and CS (6-3). I am currently doing research in RL at MIT CSAIL. Apart from my academics, I love to explore and immerse myself in nature, food, and games. </p>
-            <p class="connect">Feel free to reach out to me at dzhang17 (at) mit (dot) edu</p>
-        </div>
-          <div class="portrait-wrap">
-            <img class="portrait" src="./assets/profile.png" alt="David Zhang" />
-          </div>
-        </div>
-      </section>
+    <main class="container section">
+      <h1 class="page-title">Gallery</h1>
+      <p class="muted">Drop photos into <code>assets/gallery/</code> and add entries here.</p>
 
-      <!-- Intentionally minimal landing. Subpages/sections can be added later. -->
-
+      <div class="gallery-grid">
+        <!-- Example items -->
+        <figure class="gallery-item">
+          <img src="assets/profile.jpg" alt="Sample" />
+          <figcaption>Sample photo caption</figcaption>
+        </figure>
+        <figure class="gallery-item">
+          <img src="assets/profile.jpg" alt="Sample" />
+          <figcaption>Another caption</figcaption>
+        </figure>
+        <!-- Add more figures with your photos -->
+      </div>
     </main>
 
     <script src="./script.js" defer></script>

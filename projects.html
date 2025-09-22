@@ -3,9 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Personal website and portfolio">
-    <meta name="theme-color" content="#f8fafc">
-    <title>Home</title>
+    <title>Projects</title>
     
     <link rel="stylesheet" href="./styles.css">
   </head>
@@ -13,8 +11,8 @@
     <header class="topbar">
       <div class="container bar-inner">
         <nav class="toplinks" aria-label="Site">
-          <a href="index.html" aria-current="page">Home</a>
-          <a href="projects.html">Projects</a>
+          <a href="index.html">Home</a>
+          <a href="projects.html" aria-current="page">Projects</a>
           <a href="gallery.html">Gallery</a>
           <a href="blog.html">Blog</a>
         </nav>
@@ -29,23 +27,39 @@
       </div>
     </header>
 
-    <main id="home">
-      <section class="hero container" data-reveal>
-        <div class="hero-grid">
-          <div class="identity">
-            <h1>David Zhang</h1>
-            <p class="tagline">Hi there!</p>
-            <p class="about"> I'm a a junior at MIT studying Physics (8) and CS (6-3). I am currently doing research in RL at MIT CSAIL. Apart from my academics, I love to explore and immerse myself in nature, food, and games. </p>
-            <p class="connect">Feel free to reach out to me at dzhang17 (at) mit (dot) edu</p>
-        </div>
-          <div class="portrait-wrap">
-            <img class="portrait" src="./assets/profile.png" alt="David Zhang" />
+    <main class="container section">
+      <h1 class="page-title">Projects</h1>
+      <p class="muted">A few quick templates to get you started.</p>
+
+      <ul class="project-list">
+        <li class="project-item">
+          <div class="project-head">
+            <h3>Minimal App</h3>
+            <div class="project-links">
+              <a href="#">Live</a><span>·</span><a href="#">Code</a>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <!-- Intentionally minimal landing. Subpages/sections can be added later. -->
-
+          <p>A tiny app with a clean UI and simple state.</p>
+        </li>
+        <li class="project-item">
+          <div class="project-head">
+            <h3>CLI Tool</h3>
+            <div class="project-links">
+              <a href="#">Docs</a><span>·</span><a href="#">Code</a>
+            </div>
+          </div>
+          <p>Command line utility for automating a repetitive task.</p>
+        </li>
+        <li class="project-item">
+          <div class="project-head">
+            <h3>Design System</h3>
+            <div class="project-links">
+              <a href="#">Story</a><span>·</span><a href="#">Code</a>
+            </div>
+          </div>
+          <p>Reusable components and tokens for web projects.</p>
+        </li>
+      </ul>
     </main>
 
     <script src="./script.js" defer></script>
