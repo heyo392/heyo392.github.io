@@ -6,6 +6,7 @@
     <title>Blog</title>
     
     <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   </head>
   <body>
     <header class="topbar">
@@ -41,6 +42,8 @@
 
     <script src="./script.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" defer></script>
     <script defer>
       (function () {
         const root = document.getElementById('blog-root');
@@ -51,6 +54,10 @@
         const params = new URLSearchParams(window.location.search);
         const slug = params.get('post');
         const manifestUrl = './assets/blog/manifest.json';
+
+        if (window.marked && typeof window.marked.setOptions === 'function') {
+          window.marked.setOptions({ gfm: true, breaks: true });
+        }
 
         async function fetchJson(url) {
           const res = await fetch(url, { cache: 'no-cache' });
@@ -97,8 +104,8 @@
           if (!post.file) throw new Error('Post missing file in manifest');
           const mdUrl = `./assets/blog/${post.file}`;
           const text = await fetchText(mdUrl);
-          // Strip YAML frontmatter
-          const content = text.replace(/^---\n([\s\S]*?)\n---\n/, '');
+          // Strip YAML frontmatter (CRLF tolerant and optional trailing newline)
+          const content = text.replace(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/, '');
           const html = window.marked.parse(content);
           const maybeDate = post.date ? `<div class="muted">${post.date}</div>` : '';
           root.innerHTML = `
@@ -109,6 +116,18 @@
               <p style="margin-top: 22px;"><a href="blog.html">← Back to all posts</a></p>
             </article>
           `;
+          // Render LaTeX using KaTeX auto-render if available
+          if (typeof window.renderMathInElement === 'function') {
+            window.renderMathInElement(root, {
+              delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+              ],
+              throwOnError: false
+            });
+          }
         }
 
         (async function init() {
