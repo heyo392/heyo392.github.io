@@ -102,7 +102,7 @@
             return;
           }
           if (!post.file) throw new Error('Post missing file in manifest');
-          const mdUrl = `./assets/blog/${post.file}`;
+          const mdUrl = `./assets/blog/${encodeURIComponent(post.file)}`;
           const text = await fetchText(mdUrl);
           // Strip YAML frontmatter (CRLF tolerant and optional trailing newline)
           const content = text.replace(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/, '');
@@ -116,7 +116,6 @@
               <p style="margin-top: 22px;"><a href="blog.html">← Back to all posts</a></p>
             </article>
           `;
-          // Render LaTeX using KaTeX auto-render if available
           if (typeof window.renderMathInElement === 'function') {
             window.renderMathInElement(root, {
               delimiters: [
