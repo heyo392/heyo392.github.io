@@ -34,23 +34,213 @@
 
     <main class="container section">
       <h1 class="page-title">Gallery</h1>
-      <p class="muted">Drop photos into <code>assets/gallery/</code> and add entries here.</p>
+      <p class="muted">I'm just a budding photographer.</p>
 
-      <div class="gallery-grid">
-        <!-- Example items -->
-        <figure class="gallery-item">
-          <img src="assets/profile.jpg" alt="Sample" />
-          <figcaption>Sample photo caption</figcaption>
-        </figure>
-        <figure class="gallery-item">
-          <img src="assets/profile.jpg" alt="Sample" />
-          <figcaption>Another caption</figcaption>
-        </figure>
-        <!-- Add more figures with your photos -->
-      </div>
+      <div id="gallery-root"></div>
     </main>
 
     <script src="./script.js" defer></script>
+    <script>
+      window.addEventListener('DOMContentLoaded', function () {
+        (function () {
+          var root = document.getElementById('gallery-root');
+          if (!root) return;
+
+          fetch('assets/gallery/manifest.json', { cache: 'no-store' })
+            .then(function (resp) {
+              if (!resp.ok) throw new Error('manifest not found');
+              return resp.json();
+            })
+            .then(function (manifest) {
+              if (!manifest || (typeof manifest !== 'object')) throw new Error('Invalid manifest format');
+              var albums = Array.isArray(manifest.albums) ? manifest.albums : [];
+              var ungrouped = Array.isArray(manifest.ungrouped) ? manifest.ungrouped : [];
+              if (albums.length === 0 && ungrouped.length === 0) {
+                root.innerHTML = '<p class="muted">Add photos to <code>assets/gallery/</code> to populate the gallery.</p>';
+                return;
+              }
+
+              // Albums as condensed cards
+              if (albums.length) {
+                var secA = document.createElement('section');
+                var h2A = document.createElement('h2');
+                h2A.textContent = 'Albums';
+                secA.appendChild(h2A);
+                var cards = document.createElement('div');
+                cards.className = 'album-grid';
+                albums.forEach(function (album) {
+                  if (!album || typeof album.folder !== 'string') return;
+                  var card = document.createElement('button');
+                  card.type = 'button';
+                  card.className = 'album-card';
+                  var cover = document.createElement('img');
+                  var coverFile = album.cover || (album.photos && album.photos[0] && album.photos[0].file) || '';
+                  cover.src = coverFile ? ('assets/gallery/' + encodeURI(album.folder + '/' + coverFile)) : '';
+                  cover.alt = (album.title || album.folder) + ' cover';
+                  cover.loading = 'lazy';
+                  card.appendChild(cover);
+                  var meta = document.createElement('div');
+                  meta.className = 'album-meta';
+                  var title = document.createElement('div');
+                  title.className = 'album-title';
+                  title.textContent = album.title || album.folder;
+                  var count = document.createElement('div');
+                  count.className = 'album-count';
+                  var num = Array.isArray(album.photos) ? album.photos.length : 0;
+                  count.textContent = num + ' photo' + (num === 1 ? '' : 's');
+                  meta.appendChild(title);
+                  meta.appendChild(count);
+                  card.appendChild(meta);
+                  // removed CTA
+                  card.addEventListener('click', function () { showAlbumInline(album); });
+                  cards.appendChild(card);
+                });
+                secA.appendChild(cards);
+                root.appendChild(secA);
+              }
+
+              // Ungrouped section (shown inline)
+              if (ungrouped.length) {
+                var secU = document.createElement('section');
+                var h2U = document.createElement('h2');
+                h2U.textContent = 'Ungrouped';
+                secU.appendChild(h2U);
+                secU.appendChild(renderGrid(ungrouped, ''));
+                root.appendChild(secU);
+              }
+              // Inline album view container
+              var albumView = document.createElement('section');
+              albumView.id = 'album-view';
+              albumView.style.display = 'none';
+              root.appendChild(albumView);
+
+              function showAlbumInline(album) {
+                if (!albumView) return;
+                // Hide listing sections
+                var listSections = root.querySelectorAll('section');
+                listSections.forEach(function (s) { if (s !== albumView) s.style.display = 'none'; });
+                // Render album contents
+                albumView.innerHTML = '';
+                var head = document.createElement('div');
+                head.className = 'album-head';
+                var title = document.createElement('h2');
+                title.textContent = album.title || album.folder;
+                head.appendChild(title);
+                var back = document.createElement('button');
+                back.type = 'button';
+                back.className = 'button small';
+                back.textContent = 'Back to albums';
+                back.addEventListener('click', function () { showAlbumsList(); });
+                head.appendChild(back);
+                albumView.appendChild(head);
+                var photos = Array.isArray(album.photos) ? album.photos : [];
+                var grid = renderGrid(photos, album.folder);
+                grid.classList.add('single');
+                albumView.appendChild(grid);
+                albumView.style.display = '';
+                document.documentElement.classList.add('album-snap');
+                document.body.classList.add('album-snap');
+                enableAlbumWheelSnap(grid);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+
+              function showAlbumsList() {
+                if (albumView) { albumView.style.display = 'none'; albumView.innerHTML = ''; }
+                var listSections = root.querySelectorAll('section');
+                listSections.forEach(function (s) { if (s !== albumView) s.style.display = ''; });
+                document.documentElement.classList.remove('album-snap');
+                document.body.classList.remove('album-snap');
+                disableAlbumWheelSnap();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            })
+            .catch(function (err) {
+              console.error('Failed to load gallery manifest:', err);
+              root.innerHTML = '📷\u00A0 Unable to load gallery. Ensure <code>assets/gallery/manifest.json</code> exists.';
+            });
+
+          function renderGrid(items, prefixFolder) {
+            var grid = document.createElement('div');
+            grid.className = 'gallery-grid no-crop';
+            items.forEach(function (item) {
+              if (!item || typeof item.file !== 'string') {
+                console.error('Invalid photo entry', item);
+                return;
+              }
+              var caption = (typeof item.caption === 'string') ? item.caption.trim() : '';
+              var fig = document.createElement('figure');
+              fig.className = 'gallery-item';
+              var img = document.createElement('img');
+              var src = 'assets/gallery/' + (prefixFolder ? encodeURI(prefixFolder + '/' + item.file) : encodeURI(item.file));
+              img.src = src;
+              img.alt = caption || '';
+              img.loading = 'lazy';
+              img.addEventListener('load', function () {
+                try {
+                  if (img.naturalHeight > img.naturalWidth) { img.classList.add('portrait'); }
+                } catch (e) {}
+              });
+              fig.appendChild(img);
+              if (caption) {
+                var cap = document.createElement('figcaption');
+                cap.textContent = caption;
+                fig.appendChild(cap);
+              }
+              grid.appendChild(fig);
+            });
+            return grid;
+          }
+
+
+          // Wheel handler: one snap per gesture with deadzone and lock
+          var albumWheelHandler = null;
+          var albumWheelLock = false;
+          function enableAlbumWheelSnap(gridEl) {
+            if (!gridEl || albumWheelHandler) return;
+            var items = function () { return Array.prototype.slice.call(gridEl.querySelectorAll('.gallery-item')); };
+            var header = function () { return document.querySelector('.album-head'); };
+            albumWheelHandler = function (e) {
+              if (!document.documentElement.classList.contains('album-snap')) return;
+              if (albumWheelLock) { e.preventDefault(); return; }
+              var list = items();
+              if (!list.length) return;
+              var delta = (typeof e.deltaY === 'number') ? e.deltaY : 0;
+              var threshold = 20; // ignore micro touches
+              var dir = delta > threshold ? 1 : (delta < -threshold ? -1 : 0);
+              if (dir === 0) return;
+              e.preventDefault();
+              albumWheelLock = true;
+              var head = header();
+              var headH = head ? head.offsetHeight : 0;
+              var currentTop = window.scrollY + headH + 1;
+              var currentIndex = 0;
+              var minDist = Infinity;
+              for (var i = 0; i < list.length; i++) {
+                var elTop = list[i].offsetTop;
+                var dist = Math.abs(elTop - currentTop);
+                if (dist < minDist) { minDist = dist; currentIndex = i; }
+              }
+              var targetIndex = Math.min(Math.max(currentIndex + dir, 0), list.length - 1);
+              var target = list[targetIndex];
+              var targetScrollTop = (target.offsetTop + (target.offsetHeight / 2)) - (window.innerHeight / 2) + (headH / 2);
+              window.scrollTo({ top: Math.max(targetScrollTop, 0), behavior: 'smooth' });
+              window.setTimeout(function () { albumWheelLock = false; }, 600);
+            };
+            window.addEventListener('wheel', albumWheelHandler, { passive: false });
+          }
+
+          function disableAlbumWheelSnap() {
+            if (!albumWheelHandler) return;
+            window.removeEventListener('wheel', albumWheelHandler);
+            albumWheelHandler = null;
+            albumWheelLock = false;
+          }
+
+
+          // removed modal/lightbox
+        })();
+      });
+    </script>
   </body>
   </html>
 

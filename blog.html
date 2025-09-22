@@ -34,17 +34,96 @@
 
     <main class="container section">
       <h1 class="page-title">Blog</h1>
-      <article class="card">
-        <h2>Hello, world</h2>
-        <p class="muted">First post</p>
-        <p>
-          This is a minimal blog setup without a generator. Add more posts by
-          creating new HTML files in a <code>blog/</code> folder or expanding this page.
-        </p>
-      </article>
+      <div id="blog-root" class="card">
+        <p class="muted">Loading…</p>
+      </div>
     </main>
 
     <script src="./script.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
+    <script defer>
+      (function () {
+        const root = document.getElementById('blog-root');
+        if (!root) {
+          throw new Error('Missing #blog-root');
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        const slug = params.get('post');
+        const manifestUrl = './assets/blog/manifest.json';
+
+        async function fetchJson(url) {
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (!res.ok) throw new Error(`Request failed ${res.status} ${url}`);
+          return res.json();
+        }
+
+        async function fetchText(url) {
+          const res = await fetch(url, { cache: 'no-cache' });
+          if (!res.ok) throw new Error(`Request failed ${res.status} ${url}`);
+          return res.text();
+        }
+
+        function renderList(posts) {
+          if (!Array.isArray(posts)) throw new Error('Invalid manifest format (expected array)');
+          if (posts.length === 0) {
+            root.innerHTML = '<p class="muted">No posts yet.</p>';
+            return;
+          }
+          const items = posts.map(p => {
+            if (!p || typeof p.slug !== 'string' || typeof p.title !== 'string') {
+              throw new Error('Invalid post entry in manifest');
+            }
+            const date = p.date ? `<div class="muted">${p.date}</div>` : '';
+            const summary = p.summary ? `<p>${p.summary}</p>` : '';
+            return `
+              <article class="card" style="margin: 0 0 16px 0;">
+                <h2 style="margin: 0 0 6px 0;"><a href="blog.html?post=${encodeURIComponent(p.slug)}">${p.title}</a></h2>
+                ${date}
+                ${summary}
+              </article>
+            `;
+          }).join('');
+          root.innerHTML = items;
+        }
+
+        async function renderPost(slug, posts) {
+          if (!slug) throw new Error('Missing slug');
+          const post = posts.find(p => p.slug === slug);
+          if (!post) {
+            root.innerHTML = `<p class="muted">Post not found.</p><p><a href="blog.html">← Back to all posts</a></p>`;
+            return;
+          }
+          if (!post.file) throw new Error('Post missing file in manifest');
+          const mdUrl = `./assets/blog/${post.file}`;
+          const text = await fetchText(mdUrl);
+          // Strip YAML frontmatter
+          const content = text.replace(/^---\n([\s\S]*?)\n---\n/, '');
+          const html = window.marked.parse(content);
+          const maybeDate = post.date ? `<div class="muted">${post.date}</div>` : '';
+          root.innerHTML = `
+            <article class="card">
+              <h1 style="margin: 0 0 6px 0;">${post.title}</h1>
+              ${maybeDate}
+              <div style="margin-top: 14px;">${html}</div>
+              <p style="margin-top: 22px;"><a href="blog.html">← Back to all posts</a></p>
+            </article>
+          `;
+        }
+
+        (async function init() {
+          const posts = await fetchJson(manifestUrl);
+          if (slug) {
+            await renderPost(slug, posts);
+          } else {
+            renderList(posts);
+          }
+        })().catch(err => {
+          console.error(err);
+          root.innerHTML = `<p class="muted">Error: ${String(err.message || err)}</p>`;
+        });
+      })();
+    </script>
   </body>
   </html>
 

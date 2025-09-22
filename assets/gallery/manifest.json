@@ -1,0 +1,67 @@
+{
+  "albums": [
+    {
+      "title": "Seattle 2025",
+      "folder": "Seattle 2025",
+      "cover": "DSC_0746.jpg",
+      "photos": [
+        {
+          "file": "DSC_0746.jpg",
+          "caption": "Kerry Park"
+        },
+        {
+          "file": "DSC_0976.jpg",
+          "caption": "Central Waterfront"
+        },
+        {
+          "file": "DSC_1603.jpg",
+          "caption": "Mount Rainier National Park"
+        },
+        {
+          "file": "DSC_2273.jpg",
+          "caption": "Park Butte, North Cascades National Park"
+        },
+        {
+          "file": "DSC_1762.jpg",
+          "caption": "Central Waterfront"
+        },
+        {
+          "file": "DSC_1931.jpg",
+          "caption": "Maple Pass, North Cascades National Park"
+        }
+      ]
+    },
+    {
+        "title": "Italy 2024",
+        "folder": "Italy 2024",
+        "cover": "DSC_0460.jpg",
+        "photos": [
+            {
+            "file": "DSC_0460.jpg",
+            "caption": "Cinque Terre"
+            },
+          {
+            "file": "DSC_0507.jpg",
+            "caption": "Rome"
+          },
+          {
+            "file": "DSC_0609.jpg",
+            "caption": "Verona"
+          },
+          {
+            "file": "DSC_0627.jpg",
+            "caption": "Pisa"
+          },
+          {
+            "file": "DSC_0119.jpg",
+            "caption": "Dolomites"
+          },
+          {
+            "file": "DSC_0049.jpg",
+            "caption": "Cinque Terre"
+          }
+        ]
+      }
+  ],
+  "ungrouped": []
+}
