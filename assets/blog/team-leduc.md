@@ -26,7 +26,7 @@ This demonstrates the power of correlation. Without correlation, the best that t
 Note: CFR would fail to even reach this strategy! With uniform initialization, no regrets ever accumulate because all actions are symmetric. Without perfect recall, regret signals collapse and the correlated structure is never discovered.
 
 ### TB-DAG
-We turn to the Team Belief-DAG<sup>1</sup> to solve all of our problems. Intuitively what this does is enumerate all possible combinations of actions at public belief states. Our dag consists of nodes of public belief (say check-check-bet) and prescriptions (say {[if Team Member 1 has A do X. Team Member 2 respond with Y], [If Team Member 1 has A do Y. Team Member 2 respond with Y]...}). You can find the details for this in the paper.
+We turn to the Team Belief-DAG<sup>1</sup> to solve all of our problems. Intuitively what this does is enumerate all possible combinations of actions at public belief states. Our dag consists of nodes of public belief (say check-check-bet) and prescriptions (say {[if Team Member 1 has A do X, otherwise do Y], [If Team Member 1 has A do Y, otherwise do Y]...}). You can find the details for this in the paper.
 
 <details>
 <summary>Show TBDAG construction example</summary>
