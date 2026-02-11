@@ -10,7 +10,7 @@ We consider the 4-player Team Leduc Hold'em game described in the project specif
 
 Formally, this problem is known as Team Maxmin Correlated Equilibrium (TMECor). 
 
-The strategies were evalulated based on two metrics. Head-to-head utility against other teams in the class and exploitability. Exploitability is defined as the maximum utility a perfect counter-strategy could achieve against your strategy. At equilibrium, exploitability equals the value of the game. For this specific game, the exploitability of a uniform strategy is 6.1165.
+The strategies were evalulated based on two metrics. Head-to-head utility against other teams in the class and exploitability. Exploitability is defined as the maximum utility a perfect counter-strategy could achieve against your strategy above the game value. At equilibrium, the best response equals the value of the game and exploitability equals 0. For this specific game, the exploitability of a uniform strategy is 6.1165.
 
 ### Toy Game
 To gain intuition for this problem, consider the following toy game:
