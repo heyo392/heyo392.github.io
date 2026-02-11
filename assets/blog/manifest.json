@@ -1,11 +1,18 @@
 [
   {
+    "slug": "teamleduc",
+    "file": "team-leduc.md",
+    "title": "Team-Leduc Poker Challenge",
+    "date": "2026-02-011",
+    "summary": "Our winning solution to the multi-agent learning final project",
+    "tags": []
+  },
+{
     "slug": "blotto",
     "file": "blotto.md",
     "title": "blotto",
     "date": "2025-09-22",
-    "summary": "my solution to blotto",
-    "tags": [
-    ]
+    "summary": "My solution to blotto",
+    "tags": []
   }
 ]

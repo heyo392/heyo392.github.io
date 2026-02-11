@@ -8,7 +8,7 @@ I wrote about playing games on my college apps.
 
 In a later post, I want to talk more about why I enjoy them so much and why I think they are important (even for AI).  
 
-For now, heres a tale about how I won a nice series 10 sapple watch playing this game called "Blotto". Here's the setup: 
+For now, heres a tale about how I won a nice series 10 apple watch playing this game called "Blotto". Here's the setup: 
 
 *You are playing against many other players. Each person is allocated 1000 soldiers. You can choose to allocate these 1000 soldiers however you want to 10 different boxes. The $i_{th}$ box is worth $i$ coins, 1-10. In a single match, you get paired up against another player. For every box that you have strictly more soldiers than your opponent, you win that box. The whole competition consists of a round robin. The winner of the whole competition is the person with the most amount of coins at the end.* 
 

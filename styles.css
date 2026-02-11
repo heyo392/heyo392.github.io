@@ -71,10 +71,18 @@ body {
 .button.small { padding: 8px 10px; font-size: 14px; }
 
 .card { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
-
+.card blockquote { border: none; margin: 24px 0; padding: 0; color: var(--muted-ink); line-height: 1.8; font-style: italic; }
+.card details { margin: 16px 0; }
+.card details summary { cursor: pointer; color: #9ca3af; font-size: 14px; list-style: none; text-decoration: underline; text-underline-offset: 3px; }
+.card details summary::marker, .card details summary::-webkit-details-marker { display: none; }
+.card details summary::before { content: none; }
+.card details[open] summary::before { content: none; }
+.card details img { display: block; margin: 10px 0; max-width: 100%; height: auto; }
 .section { padding: 44px 0; }
 .section h2 { margin: 0 0 14px; font-size: clamp(22px, 3vw, 28px); }
 .section p { color: var(--muted-ink); line-height: 1.7; }
+.card hr { border: none; border-top: 1px solid var(--line); margin: 40px 0 16px; }
+.card small { font-size: 12px; color: #9ca3af; }
 .page-title { font-family: -apple-system, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; font-weight: 800; letter-spacing: -0.01em; font-size: clamp(22px, 5vw, 36px); margin: 0 0 6px; }
 .muted { color: var(--muted-ink); }
 
