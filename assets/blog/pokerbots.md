@@ -1,10 +1,10 @@
-Very recently my team and I won MIT Pokerbots under the team Heyo999. Every year, MIT hosts a month long competition in January where competitors submit agents to play heads up poker in a custom variant. In this post, I aim to showcase the work that my team has put out without ruining the competition for future years. Many details are left open so that future competitors have a starting point but will still have to put in work and intuition to get good results. 
+Very recently my team and I won MIT Pokerbots under the team Heyo999. Every year, MIT hosts a month long competition in January where competitors submit agents to play heads up poker in a custom variant. In this post, I aim to showcase the work that my team has built without ruining the competition for future years. Many details are left open so that future competitors have a starting point but will still have to put in work and intuition to get good results. 
 
 I will assume you are familiar with a basic level of poker terminology. 
 
 ### Rules
 
-The variant is heads-up (1 vs 1) No-Limit Holdem with the following modifications. For Preflop, each player starts with 3 cards instead of 2. The flop begins with dealing 2 community cards. The big blind then discards a card, face-up, from their hand into the public board. Next, the small blind does the same thing. Flop betting resumes as normal, now with 4 cards on the board (and 2 private cards per player). The turn and river proceed as normal, with 5 and 6 public cards respectively. The person that wins the hand at showdown is still the person with the strongest 5 card hand. 
+The variant is heads-up (1 vs 1) No-Limit Holdem with the following modifications. For Preflop, each player starts with 3 cards instead of 2. Preflop betting proceeds as normal. The flop begins with dealing 2 community cards. The big blind then discards a card, face-up, from their hand into the public board. Next, the small blind does the same thing. Flop betting resumes as normal, now with 4 cards on the board (and 2 private cards per player). The turn and river proceed as normal, with 5 and 6 public cards respectively. The person that wins the hand at showdown is still the person with the strongest 5 card hand. 
 
 <details>
 <summary>Show Diagram</summary>
@@ -48,7 +48,7 @@ Regret matching is a no-regret algorithm, which means that regret grows sublinea
 
 ### Abstraction
 
-Poker is a huge game. For heads up no limit texas holdem, there are around $10^{18}$ infosets when you consider your private cards, community cards, and action history. Tabular CFR is utterly hopeless when it comes to solving a game of this scale. All solvers use some form of abstraction to group similar spots together when solving poker. 
+Poker is a huge game. We define an $infoset$ as a unique decision point. For heads up no limit texas holdem, there are around $10^{18}$ infosets when you consider your private cards, community cards, and action history. Tabular CFR is utterly hopeless when it comes to solving a game of this scale. All solvers use some form of abstraction to group similar spots together when solving poker. 
 
 For commercial solvers, there is always a form of history abstraction. We can quantize raises since we don't need the history to be that granular (such as betting 10 vs 11 chips into a pot of 100). During play against a live opponent, we round their action to an action on our own tree. The game is still huge after this. Some solvers will only let you solve starting on the flop. Deep learning has been the best recent answer here, serving as value functions or even replacing the tabular approach of CFR with neural networks. 
 
@@ -76,7 +76,7 @@ All-in always allowed.
 
 #### Card abstractions: 
 
-I will be referring to the abstraction as a bucket. 
+I will be referring to the abstraction as a bucket. We aim to group similar hands together. Once we determine how to define similar hands, the CFR algorithm has a much easier time since it has less decisions to make, as it is forced to play each hand in a bucket the same way.
 
 **Preflop:** We had 1755 buckets, one for each strategically unique 3-card hand. We determine if a hand is strategically unique through isomorphism. Isomorphism means two hands are strategically identical up to renaming suits (and swapping indistinguishable ranks).
 
@@ -108,7 +108,7 @@ $$\mathbf{f} = [h_1, h_2, h_3], \quad \mathbf{g} = [k_1, k_2, k_3]$$
 
 $$d(\mathbf{f}, \mathbf{g}) = \min_{\pi \in S_3} \left\| \begin{bmatrix} \text{EMD}(h_1, k_{\pi(1)}) \\ \text{EMD}(h_2, k_{\pi(2)}) \\ \text{EMD}(h_3, k_{\pi(3)}) \end{bmatrix} \right\|_2$$
 
-The permutation handles the fact that the 3 discard options have no canonical ordering. 
+The permutation handles the fact that the 3 discard options have no canonical ordering. We take the L2 norm of the EMDs because it makes sure the entire set of options aligns well. At runtime we order the three discard options by the permutation that best aligns to the cluster centroid, giving a consistent action index for CFR and live play.
 
 <details>
 <summary>Show Discard Feature</summary>
@@ -119,9 +119,9 @@ The permutation handles the fact that the 3 discard options have no canonical or
 
 </details>
 
-For above methods, note that we get isomorphism for free since isomorphic hands produce the same histograms. We take the L2 norm of the EMDs because it makes sure the entire set of options aligns well.
+For above methods, note that we get isomorphism for free since isomorphic hands produce the same histograms. 
 
-We cut down the number of infosets to roughly **10 million** for the final submission. Each infoset can be keyed by the complete betting history and the card cluster. 
+We cut down the number of infosets to roughly **10 million** for the final submission. Each infoset can be keyed by the abstracted betting history and the card cluster. 
 
 ### Engineering and Training
 
