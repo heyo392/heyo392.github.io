@@ -8,6 +8,7 @@ The variant is heads-up (1 vs 1) No-Limit Holdem with the following modification
 
 <div style="text-align: center">
 <img src="/assets/blog/pokerbot-images/nano-banana.png" width="600" />
+
 <small><em>generated with nano-banana pro</em></small>
 </div>
 
