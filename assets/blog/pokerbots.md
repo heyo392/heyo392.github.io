@@ -6,14 +6,10 @@ I will assume you are familiar with a basic level of poker terminology.
 
 The variant is heads-up (1 vs 1) No-Limit Holdem with the following modifications. For Preflop, each player starts with 3 cards instead of 2. Preflop betting proceeds as normal. The flop begins with dealing 2 community cards. The big blind then discards a card, face-up, from their hand into the public board. Next, the small blind does the same thing. Flop betting resumes as normal, now with 4 cards on the board (and 2 private cards per player). The turn and river proceed as normal, with 5 and 6 public cards respectively. The person that wins the hand at showdown is still the person with the strongest 5 card hand. 
 
-<details>
-<summary>Show Diagram</summary>
-
+<div style="text-align: center">
 <img src="/assets/blog/pokerbot-images/nano-banana.png" width="600" />
 <small><em>generated with nano-banana pro</em></small>
-
-
-</details>
+</div>
 
 The tournament is run round-robin style. You play 50 matches against each team. One match consists of 1000 hands. For each hand, we play through the game starting with 200BB. Any winnings or losses from this hand get recorded, players alternate being small and big blind, and the stacks get reset to 200BB for the next hand. Whoever has won more chips by the end of 1000 hands wins the match. Your final tournament ranking is determined by your Elo after all matches.
 
@@ -48,7 +44,7 @@ Regret matching is a no-regret algorithm, which means that regret grows sublinea
 
 ### Abstraction
 
-Poker is a huge game. We define an $infoset$ as a unique decision point. For heads up no limit texas holdem, there are around $10^{18}$ infosets when you consider your private cards, community cards, and action history. Tabular CFR is utterly hopeless when it comes to solving a game of this scale. All solvers use some form of abstraction to group similar spots together when solving poker. 
+Poker is a huge game. We define an *infoset* as a unique decision point. For heads up no limit texas holdem, there are around $10^{18}$ infosets when you consider your private cards, community cards, and action history. Tabular CFR is utterly hopeless when it comes to solving a game of this scale. All solvers use some form of abstraction to group similar spots together when solving poker. 
 
 For commercial solvers, there is always a form of history abstraction. We can quantize raises since we don't need the history to be that granular (such as betting 10 vs 11 chips into a pot of 100). During play against a live opponent, we round their action to an action on our own tree. The game is still huge after this. Some solvers will only let you solve starting on the flop. Deep learning has been the best recent answer here, serving as value functions or even replacing the tabular approach of CFR with neural networks. 
 
