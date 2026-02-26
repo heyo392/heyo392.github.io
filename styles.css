@@ -72,9 +72,9 @@ body {
 
 .card { background: transparent; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
 .card blockquote { border: none; margin: 24px 0; padding: 0; color: var(--muted-ink); line-height: 1.8; font-style: italic; }
-.card details { margin: 16px 0; }
-.card details summary { cursor: pointer; }
-.card details img { display: block; margin: 10px 0; max-width: 100%; height: auto; }
+.card details { margin: 16px 0; text-align: center; }
+.card details summary { cursor: pointer; text-align: left; }
+.card details img { display: block; margin: 10px auto; max-width: 100%; height: auto; }
 .section { padding: 44px 0; }
 .section h2 { margin: 0 0 14px; font-size: clamp(22px, 3vw, 28px); }
 .section p { color: var(--muted-ink); line-height: 1.7; }

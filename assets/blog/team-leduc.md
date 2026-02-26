@@ -114,7 +114,7 @@ I got two main takeaways:
 
 The compression schemes stray from our intuition of what makes a good strategy. Greedily picking the highest probability paths will leave you highly exploitable. There is no such "best action" as each action with non-zero probability results in the same utility. 
 
-We got a glimpse at how complicated optimal strategies can be. Back when poker solvers were first being invented, there was a paradigm shift. Overbetting used to be considered rude (or even banned) since the poker community believed it was bad. Multi-agent collaborative settings appear all around us and we have much to learn.
+We got a glimpse at how complicated optimal strategies can be. Back when poker solvers were first being invented, there was a paradigm shift. Overbetting used to be considered rude (or even banned) since the poker community believed it was bad. Team games like bridge and tractor are very similar to this leduc-poker challenge, but best attempts fail to reach super-human on the full game, let alone be unexploitable to a correlated team. Beyond games, multi-agent collaborative settings appear all around us and we have much to learn.
 
 ---
 
