@@ -1,4 +1,4 @@
-Very recently my team and I won MIT Pokerbots under the team Heyo999. Every year, MIT hosts a month long competition in January where competitors submit agents to play heads up poker in a custom variant. In this post, I aim to showcase the work that my team has built without ruining the competition for future years. Many details are left open so that future competitors have a starting point but will still have to put in work and intuition to get good results. 
+Very recently my team and I won MIT Pokerbots under the team Heyo999. Every year, MIT hosts a month long competition in January where competitors submit agents to play heads up poker in a custom variant. In this post, I aim to showcase the work that my team has built. Many details are left open so that future competitors have a starting point but will still have to put in work and intuition to get good results. 
 
 I will assume you are familiar with a basic level of poker terminology. 
 
@@ -19,9 +19,9 @@ The bot may be written in java, c++, or python. There is a 60 second limit to pl
 
 ## Why RL doesn't work
 
-Methods like PPO and Q-learning are nearly unviable for these types of imperfect-information games. The first issue is defining a clear objective function. Winning the most chips is a difficult metric to optimize because it depends entirely on the distribution of strategies from other teams.What about through self play? This means you can actually train something now, but how does this guarantee our final policy will perform against every single competing team? 
+Methods like PPO and Q-learning are nearly unviable for these types of imperfect-information games. The first issue is defining a clear objective function. Winning the most chips is a difficult metric to optimize because it depends entirely on the distribution of strategies from other teams. What about through self play? This means you can actually train something now, but how does this guarantee our final policy will perform against every single competing team? 
 
-If we consider a simple game like rock-paper-scissors, RL struggles to find the optimal (we define this in the next section) of playing a uniform distribution. Each iteration, the policy learns to exploit its opponent harder, with no mechanism to account for how that change leaves it wider for exploitation in return. We can try training against a diverse pool of policies, but this doesn't work since this further incentivizes exploiting the current pool (the best response against any fixed opponent is a pure strategy!). We can try regulariziation, but that changes the objective and requires careful hyperparameter tuning. We can try magnet policies and other techniques. Going down this rabbit hole *usually* doesn't work out, especially when stronger methods exist.
+If we consider a simple game like rock-paper-scissors, RL struggles to find the optimal (we define this in the next section) of playing a uniform distribution. Each iteration, the policy learns to exploit its opponent harder, with no mechanism to account for how that change leaves it wider for exploitation in return. We can try training against a diverse pool of policies, but this doesn't work since this further incentivizes exploiting the current pool (the best response against any fixed opponent is a pure strategy!). We can try regularization, but that changes the objective and requires careful hyperparameter tuning. We can try magnet policies and other techniques. Going down this rabbit hole *usually* doesn't work out, especially when stronger methods exist.
 
 <div style="text-align: center">
 <img src="/assets/blog/pokerbot-images/nano-banana3.png" width="600" />
@@ -33,10 +33,12 @@ If we consider a simple game like rock-paper-scissors, RL struggles to find the 
 
 What if instead, we found a strategy that *could never lose?*
 
-## Counter Factual Regret Minimiation
+## Counter Factual Regret Minimization
 If we wanted to take an algorithmic approach to solve this game, we are in luck! Poker solvers have existed for quite a long time (pio solver, gtowizard, etc.). All these solvers use some form of *Counter Factual Regret Minimization* to solve for a *Nash Equilibrium*. 
 
-Nash equilibrium (for 2 player) is defined as a pair of strategy profiles $\sigma_1, \sigma_2$ such that for both players, their utility cannot be increased when switching their strategy: $u_1(\sigma ', \sigma_2) \leq u_1(\sigma_1, \sigma_2)$ and $u_2(\sigma_1, \sigma ') \leq u_2(\sigma_1, \sigma_2)$. What makes this so nice is that no matter what our opponent's strategy is, their utility is capped. Since we alternate between big and small blind, and the game is zero-sum, the expected utility of a worst-case strategy against ours is 0. For a game like poker, making deviations from nash equilibrium can be quite costly. By **playing perfect defense**, we ensure that we never lose to any opponent no matter how they might be playing (in expectation). What can be counter-intuitive is if your opponent knows your strategy, they cannot beat it. 
+Nash equilibrium (for 2 player) is defined as a pair of strategy profiles $\sigma_1, \sigma_2$ such that for both players, their utility cannot be increased when switching their strategy: $u_1(\sigma ', \sigma_2) \leq u_1(\sigma_1, \sigma_2)$ and $u_2(\sigma_1, \sigma ') \leq u_2(\sigma_1, \sigma_2)$. What makes this so nice is that no matter what our opponent's strategy is, their utility is capped. Since we alternate between big and small blind, and the game is zero-sum, the expected utility of a worst-case strategy against ours is 0. For a game like poker, making deviations from nash equilibrium can be quite costly. 
+
+By **playing perfect defense**, we ensure that we never lose to any opponent no matter how they might be playing (in expectation). What can be counter-intuitive is even if your opponent knows your strategy, they cannot beat it. 
 
 <details>
 <summary>Show CFR Algorithm</summary>
@@ -54,7 +56,7 @@ The output is the *cumulative average strategy* $$\bar{\sigma}^T = \frac{1}{T}\s
 
 Here $\pi_i^{\sigma}(I)$ is the probability of reaching $I$ due to player $i$'s own actions, and $\pi_{-i}^{\sigma}(I)$ due to the opponent and chance.
 
-Regret matching is a no-regret algorithm, which means that regret grows sublinearly. This then satisfies our definition of nash equilibrium, as the increase in expected utility from deviating to any action goes to 0 as $T \rightarrow \infty$
+Regret matching falls under the class of a no-regret algorithm, which means that regret grows sublinearly. This then satisfies our definition of nash equilibrium, as the increase in expected utility from deviating to any action goes to 0 as $T \rightarrow \infty$
 
 </details>
 
@@ -70,14 +72,11 @@ Poker is a huge game. We define an *infoset* as a unique decision point. For hea
 <small><em>generated with nano-banana pro</em></small>
 </div>
 
-We arrive at the core challenge of the CFR approach: **optimizing the trade-off between abstraction granularity and computational feasibility.** We must merge states effectively enough to produce a manageable game tree, without losing the strategic nuance required to play a winning game.
-
+We arrive at the core challenge of the CFR approach: **optimizing the trade-off between abstraction granularity and computational feasibility.** 
 
 ## Our approach
 
-In this section, we'll explain how we carefully craft features to cluster gamestates together.
-
-#### Betting abstraction: 
+#### Betting abstraction:
 
 People like to define raise sizes as fractions of the pot, since that is tied to pot-odds. Bet sizes were chosen based on intuition, defense against weird bet sizes, and impact on tree size. See our final betting tree here:
 
@@ -98,7 +97,7 @@ All-in always allowed.
 
 #### Card abstractions: 
 
-I will be referring to the abstraction as a bucket. We aim to group similar hands together. Once we determine how to define similar hands, the CFR algorithm has a much easier time since it has less decisions to make, as it is forced to play each hand in a bucket the same way.
+I will be referring to the abstraction as a bucket. Once we determine how to define similar hands, the CFR algorithm has a much easier time since it has fewer decisions to make, as it is forced to play each hand in a bucket the same way.
 
 **Preflop:** We had 1755 buckets, one for each strategically unique 3-card hand. We determine if a hand is strategically unique through isomorphism. Isomorphism means two hands are strategically identical up to renaming suits (and swapping indistinguishable ranks).
 
@@ -141,7 +140,7 @@ The permutation handles the fact that the 3 discard options have no canonical or
 
 </details>
 
-For above methods, note that we get isomorphism for free since isomorphic hands produce the same histograms. 
+For the above methods, note that we get isomorphism for free since isomorphic hands produce the same histograms. 
 
 We cut down the number of infosets to roughly **10 million** for the final submission. Each infoset can be keyed by the abstracted betting history and the card cluster. 
 
@@ -162,7 +161,9 @@ We cut down the number of infosets to roughly **10 million** for the final submi
 
 </details>
 
-**Visualization**: To interpret our strategy, we built an interactive web-based viewer backed by our strategy tree. For any infoset, the viewer queries the backend and displays the available actions along with our learned mixed strategy and other key training signals (e.g., cluster assignments, cumulative regrets, baselines, etc.). The UI follows the conventions of standard poker strategy tools, which made it easy to sanity-check lines and compare similar states across the abstraction. A lot of intuition for the game variant was developed with this tool. We also wrote a game-log parser to scrape hands from matches against other bots and replay them. This let us compare opponent actions to our recommended strategy in the exact game states we encountered. In practice, this workflow caught a large number of issues early, ranging from clustering mistakes that put states in the wrong bucket to more generic training and convergence problems.
+**Visualization**: To interpret our strategy, we built an interactive web-based viewer backed by our strategy tree. For any infoset, the viewer queries the backend and displays the available actions along with our learned mixed strategy and other key training signals (e.g., cluster assignments, cumulative regrets, baselines, etc.). The UI follows the conventions of standard poker strategy tools, which made it easy to sanity-check lines and compare similar states across the abstraction.
+
+We also wrote a game-log parser to scrape hands from matches against other bots and replay them. This let us compare opponent actions to our recommended strategy in the exact game states we encountered. In practice, this workflow caught a large number of issues early, ranging from clustering mistakes that put states in the wrong bucket to more generic training and convergence problems.
 
 <details>
 <summary>Show Strategy Visualizer</summary>
@@ -183,14 +184,14 @@ We cut down the number of infosets to roughly **10 million** for the final submi
 
 **Trembling Hand**: Explained in my previous blog post, trembling hand can help greatly for increasing your edge against a diverse field of opponents. A well-known issue with CFR is that once an action becomes slightly suboptimal, the algorithm will no longer update parts of the tree beyond that. During training, you force uniform mistakes at a tiny frequency. This forces the tree to continue to be updated, punishing suboptimal actions even harder. This lets you capitalize on real life opponents that will inevitably make mistakes. 
 
-**Live play**: The final strategy was exported into a binary with 8-bit quantization plus pruning actions below a minimum frequency to remove trembling-hand or unconverged noise. The game tree would be reconstructed from a similar config file, with weights loaded from the strategy binary. The look-up tables were doubly compressed as zip compression was not strong enough. Due to the size of the river table, river histograms and buckets were calculated live. During play, we would perform action mapping to map our opponents actions onto ours.<sup>3</sup>
+**Live play**: The final strategy was exported into a binary with 8-bit quantization plus pruning actions below a minimum frequency to remove trembling-hand or unconverged noise. The game tree would be reconstructed from a similar config file, with weights loaded from the strategy binary. The look-up tables were doubly compressed as zip compression was not strong enough. Due to the size of the river table, river histograms and buckets were calculated live. During play, we would perform action mapping to map our opponents actions onto our tree.<sup>3</sup>
 
 ### Open Problems
-While we were able to win (and by a decent margin), there are still many areas to improve in. Here are some ideas that we played around with or had in mind that would be a significant edge. These would require careful thought and execution to increase win-rate across the field, not just the strongest teams. In our experience, scaling up on the stuff aforementioned helped us more than the experiments below.
+While we were able to win (and by a decent margin), there are still many areas to improve in. Here are some ideas that we played around with or had in mind that would be a significant edge.
 
-**Board history encodings:** Our card abstraction has imperfect-recall. We forget what order the board was dealt in, which is something that commercial solvers keep track of. Additionally, we do not remember which card was discard by us nor our opponent. Both of these leave our solver wide open for exploitation. We tried a few compressed encodings of the discards, but they were either low-signal and/or exploded our tree size too much and performed worse than our baseline. 
+**Board history encodings:** Our card abstraction has imperfect-recall. We forget what order the board was dealt in, which is something that commercial solvers keep track of. Additionally, we do not remember which card was discarded by us nor our opponent. Both of these leave our solver wide open for exploitation. We tried a few compressed encodings of the discards, but they were either low-signal and/or exploded our tree size too much and performed worse than our baseline. 
 
-A possible solution to this is live river-solving. A poker strategy, at a given spot, is entirely recoverable by resolving the game if we know the posterior distributions of the hands for ourselves and our opponent. This lets us store less precomputed strategy AND have a better live strategy. This idea is what the top poker agents use today. Using this, we could have more granular buckets for a look-up table strategy and have perfect recall at live-play. We attempted to do this. While it actually is our strongest internal bot by far, it performs worse against the competition (this is because we didn't retrain a strategy that would account for perfect recall river, leaving the perceived posteriors very unbalanced). It would also require more engineering, since the scrimmage server runs on some pretty bad hardware and our current implementation times out. However, on my personal computer, it shows to be quite promising! 
+A possible solution to this is live river-solving. A poker strategy, at a given spot, is entirely recoverable by resolving the game if we know the posterior distributions of the hands for ourselves and our opponent. This lets us store less precomputed strategy AND have a better live strategy. While this bot is actually our strongest internal bot by far, it performs worse against the competition (this is because we didn't retrain a strategy that would account for perfect recall river, leaving the perceived posteriors very unbalanced). It would also require more engineering, since the scrimmage server runs on some pretty bad hardware and our current implementation times out. However, on my personal computer, it shows to be quite promising! 
 
 <details>
 <summary>Show River Experiment</summary>
@@ -204,7 +205,7 @@ A possible solution to this is live river-solving. A poker strategy, at a given 
 
 **Objective mismatch:** Our solver maximizes expected chip EV per hand in isolation. However, the objective of the game is to have more chips after 1000 hands. A super popular strategy is to fold as soon as you hit a threshold where folding for the rest of the game guarantees victory. With this in mind, a player who is ahead in chips might not want to bet as aggressively, since extra chips over this threshold doesn't help. Conversely, the player who is behind might go all-in more often, since losing extra chips won't hurt. 
 
-For poker tournaments where the payout varies with your final placement, solvers use the ICM model, which is a non-linear mapping your chip count to your expected winnings. One might for this game, optimize for your probability of winning, modeled as $\frac{\Delta + \text{threshold}}{2 \cdot \text{threshold}}$, clipped to $[0,1]$, where $\Delta$ is the chip lead after the current hand. 
+For poker tournaments where the payout varies with your final placement, solvers use the ICM model, which is a non-linear mapping of your chip count to your expected winnings. One might, for this game, optimize for your probability of winning, modeled as $\frac{\Delta + \text{threshold}}{2 \cdot \text{threshold}}$, clipped to $[0,1]$, where $\Delta$ is the chip lead after the current hand. 
 
 ## Final Results
 
