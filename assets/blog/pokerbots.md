@@ -2,7 +2,7 @@ Very recently my team and I won MIT Pokerbots under the team Heyo999. Every year
 
 I will assume you are familiar with a basic level of poker terminology. 
 
-### Rules
+## Rules
 
 The variant is heads-up (1 vs 1) No-Limit Holdem with the following modifications. For Preflop, each player starts with 3 cards instead of 2. Preflop betting proceeds as normal. The flop begins with dealing 2 community cards. The big blind then discards a card, face-up, from their hand into the public board. Next, the small blind does the same thing. Flop betting resumes as normal, now with 4 cards on the board (and 2 private cards per player). The turn and river proceed as normal, with 5 and 6 public cards respectively. The person that wins the hand at showdown is still the person with the strongest 5 card hand. 
 
@@ -17,11 +17,26 @@ The tournament is run round-robin style. You play 50 matches against each team. 
 The bot may be written in java, c++, or python. There is a 60 second limit to play through 1000 hands. There is a 1GB memory limit during play. The bot must be submitted through a zip file submission with a maximum filesize of 100mb. 
 
 
-### The literature
+## Why RL doesn't work
 
+Methods like PPO and Q-learning are nearly unviable for these types of imperfect-information games. The first issue is defining a clear objective function. Winning the most chips is a difficult metric to optimize because it depends entirely on the distribution of strategies from other teams.What about through self play? This means you can actually train something now, but how does this guarantee our final policy will perform against every single competing team? 
+
+If we consider a simple game like rock-paper-scissors, RL struggles to find the optimal (we define this in the next section) of playing a uniform distribution. Each iteration, the policy learns to exploit its opponent harder, with no mechanism to account for how that change leaves it wider for exploitation in return. We can try training against a diverse pool of policies, but this doesn't work since this further incentivizes exploiting the current pool (the best response against any fixed opponent is a pure strategy!). We can try regulariziation, but that changes the objective and requires careful hyperparameter tuning. We can try magnet policies and other techniques. Going down this rabbit hole *usually* doesn't work out, especially when stronger methods exist.
+
+<div style="text-align: center">
+<img src="/assets/blog/pokerbot-images/nano-banana3.png" width="600" />
+
+<small><em>RL policies on two player games often produce this spiral of doom instead of learning the optimal strategy. The reward in RL constantly moves with the opponent's strategy.</em></small>
+
+<small><em>generated with nano-banana pro</em></small>
+</div>
+
+What if instead, we found a strategy that *could never lose?*
+
+## Counter Factual Regret Minimiation
 If we wanted to take an algorithmic approach to solve this game, we are in luck! Poker solvers have existed for quite a long time (pio solver, gtowizard, etc.). All these solvers use some form of *Counter Factual Regret Minimization* to solve for a *Nash Equilibrium*. 
 
-Nash equilibrium (for 2 player) is defined as a pair of strategy profiles $\sigma_1, \sigma_2$ such that for both players, their utility cannot be increased when switching their strategy: $u_1(\sigma ', \sigma_2) \leq u_1(\sigma_1, \sigma_2)$ and $u_2(\sigma_1, \sigma ') \leq u_2(\sigma_1, \sigma_2)$. What makes this so nice is that no matter what our opponent's strategy is, their utility is capped. Since we alternate between big and small blind, and the game is zero-sum, the expected utility of a worst-case strategy against ours is 0. For a game like poker, making deviations from nash equilibrium can be quite costly. By playing perfect defense, we ensure that we never lose to any opponent no matter how they might be playing (in expectation). What can be counter-intuitive is if your opponent knows your strategy, they cannot beat it. 
+Nash equilibrium (for 2 player) is defined as a pair of strategy profiles $\sigma_1, \sigma_2$ such that for both players, their utility cannot be increased when switching their strategy: $u_1(\sigma ', \sigma_2) \leq u_1(\sigma_1, \sigma_2)$ and $u_2(\sigma_1, \sigma ') \leq u_2(\sigma_1, \sigma_2)$. What makes this so nice is that no matter what our opponent's strategy is, their utility is capped. Since we alternate between big and small blind, and the game is zero-sum, the expected utility of a worst-case strategy against ours is 0. For a game like poker, making deviations from nash equilibrium can be quite costly. By **playing perfect defense**, we ensure that we never lose to any opponent no matter how they might be playing (in expectation). What can be counter-intuitive is if your opponent knows your strategy, they cannot beat it. 
 
 <details>
 <summary>Show CFR Algorithm</summary>
@@ -43,15 +58,25 @@ Regret matching is a no-regret algorithm, which means that regret grows sublinea
 
 </details>
 
-### Abstraction
+## Abstraction
 
 Poker is a huge game. We define an *infoset* as a unique decision point. For heads up no limit texas holdem, there are around $10^{18}$ infosets when you consider your private cards, community cards, and action history. Tabular CFR is utterly hopeless when it comes to solving a game of this scale. All solvers use some form of abstraction to group similar spots together when solving poker. 
 
-For commercial solvers, there is always a form of history abstraction. We can quantize raises since we don't need the history to be that granular (such as betting 10 vs 11 chips into a pot of 100). During play against a live opponent, we round their action to an action on our own tree. The game is still huge after this. Some solvers will only let you solve starting on the flop. Deep learning has been the best recent answer here, serving as value functions or even replacing the tabular approach of CFR with neural networks. 
+<div style="text-align: center">
+<img src="/assets/blog/pokerbot-images/nano-banana2.png" width="600" />
 
-However, we do not have the liberties of infinite compute and training time. In order for a strategy to train during this month and have it fit into the submission, we have to cut corners. 
+<small><em>An example of a simple game tree. In this simple game tree, we might decide that having a Q or K is similar enough that we solve the 2nd tree instead. In doing so, we decrease the number of strategies to learn by 1. Note that for the green player, they cannot distinguish which solid or striped circle they are at (since the card is private to red). </em></small>
 
-### Our approach
+<small><em>generated with nano-banana pro</em></small>
+</div>
+
+We arrive at the core challenge of the CFR approach: **optimizing the trade-off between abstraction granularity and computational feasibility.** We must merge states effectively enough to produce a manageable game tree, without losing the strategic nuance required to play a winning game.
+
+
+## Our approach
+
+In this section, we'll explain how we carefully craft features to cluster gamestates together.
+
 #### Betting abstraction: 
 
 People like to define raise sizes as fractions of the pot, since that is tied to pot-odds. Bet sizes were chosen based on intuition, defense against weird bet sizes, and impact on tree size. See our final betting tree here:
@@ -120,9 +145,9 @@ For above methods, note that we get isomorphism for free since isomorphic hands 
 
 We cut down the number of infosets to roughly **10 million** for the final submission. Each infoset can be keyed by the abstracted betting history and the card cluster. 
 
-### Engineering and Training
+## Engineering and Training
 
-**Algorithm**: We implemented a variant of CFR called Variance-Reduced Monte-Carlo CFR+<sup>1</sup>. Our VR-MCCFR+ implementation ran on 128 threads, performing 10 million hands of self-play per second. Our final strategy played roughly 3 trillion hands. To do this, we had look up tables for all of our card clusters. We used a fast algorithm<sup>2</sup> to compute the canonical isomorphic key for each hand and use that to index a look-up table. Our river table has over 900 million entries. Each thread was responsible for simulating 1 game and updating the cumulative values accordingly. We guard per-infoset updates with fine-grained spin-locks. A trajectory touches ~20 infosets out of ~10M total, so lock collisions are rare and contention stayed low.
+**Algorithm**: We implemented a variant of CFR called **Variance-Reduced Monte-Carlo CFR+**<sup>1</sup>. Our VR-MCCFR+ implementation ran on 128 threads, performing **10 million hands of self-play per second**. Our final strategy played roughly **3 trillion hands**. To do this, we had look up tables for all of our card clusters. We used a fast algorithm<sup>2</sup> to compute the canonical isomorphic key for each hand and use that to index a look-up table. Our river table has over 900 million entries. Each thread was responsible for simulating 1 game and updating the cumulative values accordingly. We guard per-infoset updates with fine-grained spin-locks. A trajectory touches ~20 infosets out of ~10M total, so lock collisions are rare and contention stayed low.
 
 **Training**: We tried dozens of configurations during the month. Different raise sizes, cluster counts, threads, CFR hyperparameters, and additional clustering experiments could all be changed in a configuration file. We also made a checkpointing system to allow us to resume training, run evaluations, visualize it, or export the strategy for live-play. 
 
@@ -181,7 +206,7 @@ A possible solution to this is live river-solving. A poker strategy, at a given 
 
 For poker tournaments where the payout varies with your final placement, solvers use the ICM model, which is a non-linear mapping your chip count to your expected winnings. One might for this game, optimize for your probability of winning, modeled as $\frac{\Delta + \text{threshold}}{2 \cdot \text{threshold}}$, clipped to $[0,1]$, where $\Delta$ is the chip lead after the current hand. 
 
-### Final Results
+## Final Results
 
 <div style="text-align: center">
 
