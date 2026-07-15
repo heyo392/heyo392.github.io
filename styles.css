@@ -64,6 +64,15 @@ body {
 .portrait { width: min(260px, 70%); max-height: 42vh; object-fit: cover; border-radius: 0; border: 0; background: transparent; }
 @media (max-width: 900px) { .portrait-wrap { justify-self: center; } .portrait { width: 100%; } }
 
+.selected-work { padding: 18px 0 48px; }
+.selected-work h2 { margin: 0 0 18px; font-size: 22px; }
+.selected-work article { padding: 14px 0; border-top: 1px solid var(--line); }
+.selected-work article:last-child { border-bottom: 1px solid var(--line); }
+.selected-work h3 { margin: 0; font-size: 18px; }
+.selected-work h3 a { color: var(--ink); text-decoration: none; }
+.selected-work h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.selected-work p { margin: 5px 0 0; color: var(--muted-ink); line-height: 1.6; }
+
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; padding-top: 56px; }
 }
@@ -220,4 +229,3 @@ body.modal-open { overflow: hidden; }
 
 /* Subtle nature header rule under hero */
 .hero::after { content: none; }
-
