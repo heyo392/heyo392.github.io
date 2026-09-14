@@ -44,7 +44,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
 
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" defer></script>
     <script>
       window.addEventListener('DOMContentLoaded', function () {
         const root = document.getElementById('blog-root');
@@ -57,7 +56,33 @@
         const manifestUrl = './assets/blog/manifest.json';
 
         if (window.marked && typeof window.marked.setOptions === 'function') {
-          window.marked.setOptions({ gfm: true, breaks: true });
+          window.marked.setOptions({ gfm: true, breaks: false });
+          // Tokenize math before Markdown can consume backslashes or underscores.
+          window.marked.use({
+            extensions: [{
+              name: 'math',
+              level: 'inline',
+              start(src) {
+                return src.search(/\$|\\[([]/);
+              },
+              tokenizer(src) {
+                const match = /^(?:\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|\$((?:\\[^\r\n]|[^$\\\r\n])+)\$)/.exec(src);
+                if (!match) return;
+                return {
+                  type: 'math',
+                  raw: match[0],
+                  text: match[1] ?? match[2] ?? match[3] ?? match[4],
+                  displayMode: match[1] !== undefined || match[2] !== undefined
+                };
+              },
+              renderer(token) {
+                return window.katex.renderToString(token.text, {
+                  displayMode: token.displayMode,
+                  throwOnError: false
+                });
+              }
+            }]
+          });
         }
 
         async function fetchJson(url) {
@@ -117,17 +142,6 @@
               <p style="margin-top: 22px;"><a href="blog.html">← Back to all posts</a></p>
             </article>
           `;
-          if (typeof window.renderMathInElement === 'function') {
-            window.renderMathInElement(root, {
-              delimiters: [
-                { left: '$$', right: '$$', display: true },
-                { left: '$', right: '$', display: false },
-                { left: '\\(', right: '\\)', display: false },
-                { left: '\\[', right: '\\]', display: true }
-              ],
-              throwOnError: false
-            });
-          }
           root.querySelectorAll('a[href]').forEach(a => {
             if (!a.href.startsWith(window.location.origin)) {
               a.target = '_blank';
